@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use super::helper::*;
-use anyhow::anyhow;
+use anyhow::{anyhow, Error as AnyError};
 use axum::{
     extract::{Json, Request, State},
     http::{HeaderMap, Method, StatusCode},
@@ -328,6 +328,9 @@ pub async fn chat_completions_handler(
     }
 }
 
+/// Handles the chat completions request.
+/// It uses the `Api` instance from the `AppState` to send a request to the OpenAI API.
+/// It returns a response with the chat completions.
 async fn chat_completions<'a>(
     api: &Api<'a>,
     req_data: ChatMessagesRequest,
@@ -362,6 +365,9 @@ async fn chat_completions<'a>(
     return Ok(serde_json::to_string(&response)?.into_response());
 }
 
+/// Handles the chat completions stream request.
+/// It streams the chat completions to the client.
+/// The client can use the stream to display the chat completions in real-time.
 async fn chat_completions_stream<'a>(
     api: &Api<'a>,
     req_data: ChatMessagesRequest,
@@ -371,9 +377,10 @@ async fn chat_completions_stream<'a>(
     let stream = api.chat_messages_stream(req_data).await?;
     let model = model.to_owned();
 
-    let stream_default = stream::iter([Ok(SseEvent::default()
+    let alive_duration = Duration::from_secs(30);
+    let stream_default = stream::iter([SseEvent::default()
         .comment("streaming chat completions")
-        .retry(Duration::from_secs(15)))]);
+        .retry(alive_duration)]);
     let stream_msg = stream.map(move |result| match result {
         Ok(event) => match event {
             SseMessageEvent::Message {
@@ -400,7 +407,7 @@ async fn chat_completions_stream<'a>(
                     object: ObjectKind::ChatCompletionChunk,
                     usage: None,
                 };
-                Ok(SseEvent::default().json_data(response).unwrap())
+                SseEvent::default().json_data(response).unwrap()
             }
             SseMessageEvent::MessageEnd {
                 id, base, metadata, ..
@@ -426,13 +433,12 @@ async fn chat_completions_stream<'a>(
                         total_tokens: parse_as_u64(usage.get("total_tokens")),
                     }),
                 };
-                Ok(SseEvent::default().json_data(response).unwrap())
+                SseEvent::default().json_data(response).unwrap()
             }
             SseMessageEvent::Error { message, .. } => {
-                Ok(SseEvent::default()
-                    .json_data(serde_json::json!({ "error": message }))
-                    .unwrap())
-                // Err(anyhow!(message))
+                let message = format!("upstream: {message}");
+                let err = serde_json::json!({ "error": {"message":message} });
+                SseEvent::default().json_data(err).unwrap()
             }
             _ => {
                 let event_name = serde_json::json!(event)
@@ -440,14 +446,18 @@ async fn chat_completions_stream<'a>(
                     .map(|v| v.to_string())
                     .unwrap_or("unknown".into());
                 let comment = format!("skip dify message event: {}", event_name.trim_matches('"'));
-                Ok(SseEvent::default().comment(comment))
+                SseEvent::default().comment(comment)
             }
         },
-        Err(e) => Err(e),
+        Err(e) => {
+            let message = format!("upstream: {}", e.to_string());
+            let err = serde_json::json!({ "error": {"message": message }});
+            SseEvent::default().json_data(err).unwrap()
+        }
     });
-    let stream_end = stream::iter([Ok(SseEvent::default().data("DONE"))]);
+    let stream_end = stream::iter([SseEvent::default().data("[DONE]")]);
     let stream = stream_default.chain(stream_msg).chain(stream_end);
-    Ok(Sse::new(stream)
-        .keep_alive(KeepAlive::default())
+    Ok(Sse::new(stream.map(Ok::<_, AnyError>))
+        .keep_alive(KeepAlive::default().interval(alive_duration))
         .into_response())
 }
