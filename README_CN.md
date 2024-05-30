@@ -23,6 +23,10 @@
 
 ## Install
 
+请到发布页面下载预编译版本：[Release page](https://github.com/rming/dify-openai-apis/releases)
+
+也可以通过 `cargo` 命令安装
+
 ```sh
 # require cargo installed
 cargo install dify-openai-apis

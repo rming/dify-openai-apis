@@ -23,6 +23,10 @@ Configurations can be set via .env file or environment variables:
 
 ## Install
 
+Please download the precompiled binary from : [Release page](https://github.com/rming/dify-openai-apis/releases)
+
+You can also install it using the `cargo` command.
+
 ```sh
 # require cargo installed
 cargo install dify-openai-apis
