@@ -9,6 +9,7 @@ homepage = "https://github.com/rming/dify-openai-apis"
 documentation = "https://docs.rs/dify-openai-apis"
 categories = ["command-line-utilities", "web-programming::http-server"]
 keywords = ["dify", "openai", "llm", "api", "server"]
+rust-version = "1.71.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
