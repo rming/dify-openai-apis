@@ -1,6 +1,6 @@
 [package]
 name = "dify-openai-apis"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 description = "OpenAI-compatible APIs for Dify platform services"
 license = "Apache-2.0"
