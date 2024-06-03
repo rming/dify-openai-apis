@@ -9,6 +9,8 @@
 适用于 Dify 平台服务的 OpenAI 兼容 API。  
 这个库提供了一套与 OpenAI 的 GPT-3 API 兼容的 API，可以用来与 Dify 的平台服务和工具进行交互。
 
+**注意：** 该应用程序目前不支持 OpenAI 的[Legacy Completions API](https://platform.openai.com/docs/api-reference/completions/create)。请使用[Chat Completion API](https://platform.openai.com/docs/api-reference/chat/create)。
+
 ## Config
 
 配置可以通过 .env 文件或环境变量进行设置：
@@ -20,6 +22,11 @@
 - `DIFY_TIMEOUT`：向 Dify API 发送请求的超时时间。默认值：`10`
 - `WORKERS_NUM`：要使用的工作线程数量。默认值：`4`
 - `RUST_LOG`：服务器的日志级别。默认值：`error`
+
+**注意：**
+
+- `DIFY_API_KEY` 是默认 API 密钥，如果用户在请求 API `/v1/chat/completions` 时通过 Bearer Token 传递了 API 密钥，则将覆盖此默认值。
+- `RUST_LOG` 是日志级别，默认值为 `error`，即只输出错误日志。如果要调试运行，建议设置为 `debug` 或 `trace`。
 
 ## Install
 

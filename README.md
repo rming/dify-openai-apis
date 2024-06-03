@@ -9,6 +9,8 @@ English | [中文](./README_CN.md)
 OpenAI-compatible APIs for Dify platform services.  
 This crate provides a set of APIs that are compatible with OpenAI's GPT-3 API, and can be used to interact with Dify's platform services and tools.
 
+**Note:** The app currently does not support OpenAI's [Legacy Completions API](https://platform.openai.com/docs/api-reference/completions/create). Please use the [Chat Completion API](https://platform.openai.com/docs/api-reference/chat/create) instead.
+
 ## Config
 
 Configurations can be set via .env file or environment variables:
@@ -20,6 +22,11 @@ Configurations can be set via .env file or environment variables:
 - `DIFY_TIMEOUT`: The timeout for requests to Dify's API. Default: `10`
 - `WORKERS_NUM`: The number of worker threads to use. Default: `4`
 - `RUST_LOG`: The log level for the server. Default: `error`
+
+**Note:**
+
+- `DIFY_API_KEY` is the default API key. If a user provides an API key via Bearer Token when requesting the API `/v1/chat/completions`, it will override this default value.
+- `RUST_LOG` is the log level, with a default value of `error`, meaning only error logs will be output. If you want to debug, it is recommended to set it to `debug` or `trace`.
 
 ## Install
 
