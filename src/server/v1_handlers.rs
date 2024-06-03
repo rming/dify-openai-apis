@@ -315,7 +315,7 @@ pub async fn chat_completions_handler(
     let mut api = state.dify.api();
     let token = get_bearer_token(&headers).ok();
     if let Some(token) = token {
-        log::info!("User Custom Token: {}", token);
+        log::debug!("User Custom Token: {}", token);
         api.before_send(move |req| set_bearer_auth(req, token.as_str()));
     }
 
@@ -336,6 +336,7 @@ async fn chat_completions<'a>(
     req_data: ChatMessagesRequest,
     model: &'a str,
 ) -> Result<Response, AppError> {
+    log::debug!("Chat Completions Block Request: {:?}", req_data);
     let system_fingerprint = String::from("fp_44709d6fcb");
     let resp = api.chat_messages(req_data).await.map_err(|e| {
         e.downcast::<ErrorResponse>()
@@ -373,6 +374,7 @@ async fn chat_completions_stream<'a>(
     req_data: ChatMessagesRequest,
     model: &'a str,
 ) -> Result<Response, AppError> {
+    log::debug!("Chat Completions Streaming Request: {:?}", req_data);
     let system_fingerprint = String::from("fp_44709d6fcb");
     let stream = api.chat_messages_stream(req_data).await?;
     let model = model.to_owned();
