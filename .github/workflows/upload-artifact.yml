@@ -7,7 +7,7 @@ permissions:
 on:
   push:
     branches:
-      - main
+      - "bugfix/**"
 
 env:
   CARGO_INCREMENTAL: 0
@@ -23,41 +23,9 @@ defaults:
     shell: bash
 
 jobs:
-  release:
-    name: Release-plz
-    runs-on: ubuntu-latest
-    outputs:
-      releases_created: ${{ steps.release-plz.outputs.releases_created }}
-      tag: ${{ fromJSON(steps.release-plz.outputs.releases)[0].tag }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: Run release-plz
-        id: release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
-        with:
-          command: release
-          manifest_path: Cargo.toml
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      - name: Read release output
-        env:
-          TAG: ${{ fromJSON(steps.release-plz.outputs.releases)[0].tag }}
-          RELEASES_CREATED: ${{ steps.release-plz.outputs.releases_created }}
-        run: |
-          set -e
-          echo "releases_created: $RELEASES_CREATED"
-          echo "release_tag: $TAG"
-
-  upload-assets:
+  upload-artifact:
     name: ${{ matrix.target }}
-    needs: release
-    if: github.repository_owner == 'rming' &&  needs.release.outputs.releases_created == 'true'
+    if: github.repository_owner == 'rming'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -91,10 +59,15 @@ jobs:
           echo "RUSTFLAGS=${RUSTFLAGS} -C target-feature=+crt-static" >> "${GITHUB_ENV}"
 
       - uses: taiki-e/upload-rust-binary-action@v1
+        id: upload-rust-binary-action
         with:
           bin: dify-openai-apis
           target: ${{ matrix.target }}
           tar: all
           zip: windows
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: "refs/tags/${{ needs.release.outputs.tag }}"
+          dry-run: true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.upload-rust-binary-action.outputs.archive }}
+          path: "${{ steps.upload-rust-binary-action.outputs.archive }}.zip"
