@@ -53,7 +53,7 @@ pub struct ChatCompletionRequest {
     /// Default: 0.0
     frequency_penalty: Option<f64>,
     /// Modify the likelihood of specified tokens appearing in the completion.
-    logit_bias: Option<String>,
+    logit_bias: Option<JsonValue>,
     /// Whether to return log probabilities of the output tokens or not. If true, returns the log probabilities of each output token returned in the content of message.
     /// Default: false
     logprobs: Option<bool>,
@@ -78,7 +78,7 @@ pub struct ChatCompletionRequest {
     /// Default: null
     seed: Option<u64>,
     /// Up to 4 sequences where the API will stop generating further tokens.
-    stop: Option<String>,
+    stop: Option<JsonValue>,
     /// If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message.
     /// Default: false
     stream: Option<bool>,
