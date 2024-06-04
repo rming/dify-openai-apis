@@ -5,6 +5,9 @@ use std::env;
 use std::time::Duration;
 use tokio::{net::TcpListener, runtime};
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+const TARGET: &str = env!("TARGET");
+
 fn main() {
     let _ = dotenvy::dotenv();
     env_logger::init();
@@ -18,10 +21,10 @@ fn main() {
         .enable_all()
         .build()
         .unwrap()
-        .block_on(init_server());
+        .block_on(init_server(workers_num));
 }
 
-async fn init_server() {
+async fn init_server(workers_num: usize) {
     let host = env::var("HOST").unwrap_or("127.0.0.1".into());
     let port = env::var("PORT").unwrap_or("3000".into());
     let server_url = format!("{host}:{port}");
@@ -47,19 +50,38 @@ async fn init_server() {
         .await
         .expect("Failed to bind to address");
 
-    show_welcome(&server_url, &dify_base_url, &dify_api_key, dify_timeout);
+    show_welcome(
+        &server_url,
+        &dify_base_url,
+        &dify_api_key,
+        dify_timeout,
+        workers_num,
+    );
 
     axum::serve(listener, app).await.expect("Server Error");
 }
 
-fn show_welcome(server_url: &str, dify_base_url: &str, dify_api_key: &str, dify_timeout: u64) {
+fn show_welcome(
+    server_url: &str,
+    dify_base_url: &str,
+    dify_api_key: &str,
+    dify_timeout: u64,
+    workers_num: usize,
+) {
     println!(
         r#"Welcome to the Dify OpenAI API Server!
 
+System Information:
+- Version:        {}
+- Target:         {}
+
+App Configurations:
 - Address Listen: {}
 - Dify Base URL:  {}
 - Dify API Key:   {}
-- Dify Timeout:   {} seconds"#,
-        server_url, dify_base_url, dify_api_key, dify_timeout
+- Dify Timeout:   {} seconds
+- Workers:        {}
+"#,
+        VERSION, TARGET, server_url, dify_base_url, dify_api_key, dify_timeout, workers_num
     )
 }
