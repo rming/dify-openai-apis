@@ -68,6 +68,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
       - uses: actions/upload-artifact@v4
+        if: endsWith(matrix.target, 'windows-msvc')
         with:
           name: ${{ steps.upload-rust-binary-action.outputs.archive }}
           path: "${{ steps.upload-rust-binary-action.outputs.archive }}.zip"
+      - uses: actions/upload-artifact@v4
+        if: endsWith(matrix.target, 'windows-msvc') != true
+        with:
+          name: ${{ steps.upload-rust-binary-action.outputs.archive }}
+          path: "${{ steps.upload-rust-binary-action.outputs.archive }}.*"
