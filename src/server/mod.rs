@@ -26,10 +26,14 @@ pub fn app_routes() -> Router<AppState> {
         .allow_methods([Method::GET, Method::POST, Method::DELETE, Method::OPTIONS])
         .allow_origin(Any);
 
-    let v1_routes = Router::new()
+    let mut v1_routes = Router::new()
         .route("/chat/completions", post(chat_completions_handler))
         .route_layer(middleware::from_fn(check_method))
         .layer(ServiceBuilder::new().layer(cors));
+
+    if cfg!(debug_assertions) {
+        v1_routes = v1_routes.route_layer(middleware::from_fn(log_request));
+    }
 
     let app_routes = Router::new()
         .route("/", get(html_handler))

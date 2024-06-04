@@ -22,6 +22,19 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use tokio_stream::StreamExt;
 
+/// Logs the request body.
+/// This function is called before the chat completions handler.
+/// It logs the request body to the console.
+/// It is used for debugging purposes.
+#[cfg(debug_assertions)]
+pub async fn log_request(req: Request, next: Next) -> Result<Response, AppError> {
+    let (parts, body) = req.into_parts();
+    let bytes = axum::body::to_bytes(body, usize::MAX).await?;
+    log::debug!("Request Body: {:?}", bytes);
+    let req1 = axum::http::Request::from_parts(parts, axum::body::Body::from(bytes));
+    Ok(next.run(req1).await)
+}
+
 /// Checks if the request method is OPTIONS.
 /// If the request method is OPTIONS, it returns a 204 No Content response.
 /// If the request method is not OPTIONS, it calls the next middleware.
