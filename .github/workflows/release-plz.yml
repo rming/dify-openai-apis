@@ -94,7 +94,7 @@ jobs:
         with:
           bin: dify-openai-apis
           target: ${{ matrix.target }}
-          tar: all
+          tar: unix
           zip: windows
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: "refs/tags/${{ needs.release.outputs.tag }}"
